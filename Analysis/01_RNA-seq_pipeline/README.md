@@ -135,7 +135,7 @@ Then, we used the combined references for sequence alignment and gene quantifica
 ```shell
 # In <project_dir>
 cd src/
-nohup bash STAR_pipeline.sh --pair \
+nohup bash RNAseq_pipeline.sh --pair \
 -d ~/RNApipe \
 -i ~/RNApipe/data \
 -o ~/RNApipe/results \
