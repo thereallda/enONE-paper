@@ -8,13 +8,13 @@ library(webr)
 
 ##--Custom Function--##
 # reduce un-filtered results list 
-reduceResAll <- function(res.ls, fc.col, levels=names(res.ls)) {
+reduceResAll <- function(res.ls, logfc.col, levels=names(res.ls)) {
   df <- data.frame()
   for (id in names(res.ls)) {
     curr <- res.ls[[grep(id, names(res.ls), value=TRUE)]] 
     df1 <- curr %>% 
       dplyr::mutate(Group = factor(rep(id, nrow(curr)), levels = levels)) %>% 
-      dplyr::select(GeneID, !!sym(fc.col), logCPM, FDR, Group)
+      dplyr::select(GeneID, !!sym(logfc.col), logCPM, FDR, Group)
     df <- rbind(df, df1)
   }
   return(df)
@@ -70,7 +70,7 @@ load('Data/Enone.RData')
 res.ls <- getEnrichment(Enone, slot='sample', filter=F)
 # simplify group id
 names(res.ls) <- c('D0.Water', 'D14.Water', 'D0.NMN', 'D14.NMN')
-nad_all <- reduceResAll(res.ls, fc.col = 'logFC')
+nad_all <- reduceResAll(res.ls, logfc.col = 'logFC')
 
 # get enriched genes
 res.sig.ls <- getEnrichment(Enone, slot='sample', filter=T)
@@ -166,7 +166,7 @@ ggsave('ChrDistribution_circular_v2.pdf', width=10, height=8)
 
 # gene length ~ logFC ----
 # retrieve gene length from featrueCounts files
-Translen <- read.table('C1_counts.txt', sep='\t', header=T)
+Translen <- read.table('Data/C1_counts.txt', sep='\t', header=T)
 
 df3 <- left_join(nad_sig, Translen[,c('Geneid','Length')], by = c('GeneID'='Geneid')) %>% # merge with gene length info
   group_by(Group) %>% 

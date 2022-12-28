@@ -401,5 +401,5 @@ for (i in 6:10) {
 bps2 <- bps2 + theme(legend.position = 'right') + labs(color='')
 ggsave('Expr_level_GO.pdf', bps2, width=10, height=6)
 
-# save data for downstream analysiss
+# save data for downstream analysis
 save(lfc.avg, ind.fc, nad_df, avg.expr.mat, expr_df, s1, s2, s3, s4, gene_id, file='Data/StatDat.RData')

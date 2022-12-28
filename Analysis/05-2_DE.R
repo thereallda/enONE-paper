@@ -6,7 +6,7 @@ library(patchwork)
 library(biomaRt)
 
 # load NAD-RNA data from results of 03_enONE.R
-load('data/Enone.RData')
+load('Data/Enone.RData')
 # get normalized counts
 counts_norm <- Counts(Enone, 'sample', 'TMM_RUVse_k3')
 # get raw counts

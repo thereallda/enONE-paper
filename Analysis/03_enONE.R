@@ -4,8 +4,8 @@ library(tidyverse)
 library(patchwork)
 
 # In Data folder 
-metadata <- read.csv('metadata.csv', comment.char = '#')
-counts_df <- read.csv('data/Counts.csv', row.names = 1)
+metadata <- read.csv('Data/metadata.csv', comment.char = '#')
+counts_df <- read.csv('Data/Counts.csv', row.names = 1)
 
 # prefix of Drosophila spike-in gene id
 spikeInPrefix <- '^FB'
@@ -28,7 +28,7 @@ rrna.id <- subset(gene.cf, gene_biotype == 'rRNA')$gene_id
 counts_keep <- counts_keep[!rownames(counts_keep) %in% rrna.id, ]
 
 ## ronser's test for outlier assessment
-vt <- DESeq2::vst(as.matrix(counts_rm), nsub = 20000)
+vt <- DESeq2::vst(as.matrix(counts_keep), nsub = 20000)
 pc <- prcomp(t(vt))
 ## all samples pass the test
 EnvStats::rosnerTest(pc$x[,1])
@@ -45,14 +45,14 @@ Enone <- createEnone(counts_keep,
 # run ---- 
 Enone <- enONE(Enone, 
                ruv.norm = TRUE, ruv.k = 3, 
-               pc.k = 5, pam.krange = 2:8,
+               eval.pc.n = 5, eval.pam.k = 2:8,
                n.pos.eval = 200, n.neg.eval = 500)
 
 ## check performance ----
 enScore <- getScore(Enone)
 # perform PCA based on evaluation score, excluding BAT_SIM column (3) for no batch information provided, and SCORE column (9).
 pca.eval <- prcomp(enScore[,-c(3, 9)], scale = TRUE)
-ggPCA_Biplot(pca.eval, score = enScore$SCORE, pt.label = T)
+PCA_Biplot(pca.eval, score = enScore$SCORE, pt.label = T)
 # fig. 2E
 ggsave('Norm_performance.pdf', width=8, height=6)
 

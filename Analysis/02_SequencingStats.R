@@ -4,10 +4,10 @@ library(tidyverse)
 library(paintingr)
 
 # read in metadata
-metadata <- read.csv("metadata.csv", header=TRUE, comment.char = "#")
+metadata <- read.csv("Data/metadata.csv", header=TRUE, comment.char = "#")
 
 # read in counts table
-counts_df <- read.csv("Counts.csv", row.names = 1)
+counts_df <- read.csv("Data/Counts.csv", row.names = 1)
 
 # prefix of Drosophila spike-in gene id
 spikeIn <- "^FB"
@@ -16,7 +16,7 @@ spikeIn <- "^FB"
 samples_name <- paste(metadata$condition, metadata$replicate, sep='.')
 
 ## uniquely mapped read pairs of each library ----
-align_stat <- read.table('alignment_stat.tsv', sep='\t', header = TRUE)[,c(1,2)]
+align_stat <- read.table('Data/alignment_stat.tsv', sep='\t', header = TRUE)[,c(1,2)]
 # first column is the library id and second column is the number of uniquely 
 # mapped read pairs of each library
 colnames(align_stat) <- c('ID', 'Uni')
@@ -48,7 +48,7 @@ align_stat %>%
 ggsave('MappedReads.pdf', width=8, height=8)
 
 # sequencing saturation ----
-geneNums <- read.table('geneNum.txt', sep='\t',header=TRUE)
+geneNums <- read.table('Data/geneNum.txt', sep='\t',header=TRUE)
 # first column is the subsampling proportion of library; 
 # second column is the number of well-detected genes (counts>10) in corresponding proportion; 
 # thrid column is the id of library
