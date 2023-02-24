@@ -117,7 +117,7 @@ if $PAIR; then
 		--phred33 \
 		--gzip \
 		-o ${CLEANLOC}/ \
-		--cores 8 \
+		--cores ${THREADS} \
 		--basename ${PREFIX} \
 		--fastqc_args "-o ${OUTDIR}/QC -t 8" \
 		--paired \
@@ -133,16 +133,16 @@ if $PAIR; then
 		--readFilesIn ${CLEANLOC}/${PREFIX}_val_1.fq.gz ${CLEANLOC}/${PREFIX}_val_2.fq.gz \
 		--runThreadN ${THREADS} \
 		--outSAMtype SAM \
-		--outSAMunmapped Within \
 		--outFileNamePrefix ${ALIGNLOC}/${PREFIX}_align/ 
 
 		## samtools -- ../align/{PREFIX}/
 		echo ""
 		echo ">Step03 SAMTOOLS" 
 		echo ""
-		samtools view -@ ${THREADS} -q 30 -f 2 -hSb ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam |samtools sort - -@ 32 -o ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
+		samtools view -@ ${THREADS} -q 30 -f 2 -hSb ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam |samtools sort - -@ ${THREADS} -o ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
 		samtools index ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
-
+		rm -f ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam
+		
 		## featureCounts -- ${OUTDIR}/featurecounts
 		echo ""
 		echo ">Step04 featureCounts" 
@@ -171,7 +171,7 @@ else
 		--phred33 \
 		--gzip \
 		-o ${CLEANLOC}/ \
-		--cores 8 \
+		--cores ${THREADS} \
 		--basename ${PREFIX} \
 		--fastqc_args "-o ${OUTDIR}/QC -t 8" \
 		${FASTQLOC}/${FQ} 
@@ -186,15 +186,15 @@ else
 		--readFilesIn ${CLEANLOC}/${PREFIX}_trimmed.fq.gz \
 		--runThreadN ${THREADS} \
 		--outSAMtype SAM \
-		--outSAMunmapped Within \
 		--outFileNamePrefix ${ALIGNLOC}/${PREFIX}_align/  
 
 		## samtools -- ../align/{PREFIX}/
 		echo ""
 		echo ">Step03 SAMTOOLS" 
 		echo ""
-		samtools view -@ ${THREADS} -q 30 -F 4 -hSb ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam |samtools sort - -@ 32 -o ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
+		samtools view -@ ${THREADS} -q 30 -F 4 -hSb ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam |samtools sort - -@ ${THREADS} -o ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
 		samtools index ${ALIGNLOC}/${PREFIX}_align/${PREFIX}.sorted.bam
+		rm -f ${ALIGNLOC}/${PREFIX}_align/Aligned.out.sam
 
 		## featureCounts -- ${OUTDIR}/featurecounts
 		echo ""

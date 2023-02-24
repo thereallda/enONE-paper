@@ -52,7 +52,7 @@ mkdir src
 
 - `results/` for holding results.
 
-- `src/` for any source files, e.g., `STAR_pipeline.sh`..
+- `src/` for any source files, e.g., `RNAseq_pipeline.sh`..
 
 
 
@@ -118,16 +118,30 @@ RNApipe/
 
 In enONE manuscript, we used the following commands. 
 
-We first generated a combined genome and associated STAR index as well as a combined annotation file of dog and fly. 
+We first generated a combined genome and associated STAR index as well as a combined annotation file of human and fly. 
+
+```bash
+# pseudo codes
+# combine annotation
+cat Homo_sapiens.GRCh38.94.chr.gff3 dmel-all-r6.36.gff3 > GRCh38_Dm6.36.gff3
+
+# combine genome
+cat GRCh38.primary_assembly.genome.fa dmel-all-chromosome-r6.36.fasta > GRCh38_Dm6.36.fa
+
+# generate index for combined genome
+STAR --runMode genomeGenerate --genomeFastaFiles GRCh38_Dm6.36.fa --sjdbGTFfile GRCh38_Dm6.36.gff3 --sjdbOverhang 149 --runThreadN 16 --genomeDir GRCh38_Dm6.36/ --genomeSAindexNbases 12
+```
+
+
 
 > Genome:
 >
-> - dog: https://ftp.ensembl.org/pub/release-106/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.toplevel.fa.gz.
+> - human: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_43/GRCh38.primary_assembly.genome.fa.gz
 > - fly: http://ftp.flybase.net/releases/FB2020_05/dmel_r6.36/fasta/dmel-all-chromosome-r6.36.fasta.gz
 >
 > Annotation:
 >
-> - dog: https://ftp.ensembl.org/pub/release-106/gff3/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.106.gff3.gz
+> - human: https://ftp.ensembl.org/pub/release-94/gff3/homo_sapiens/Homo_sapiens.GRCh38.94.gff3.gz
 > - fly: http://ftp.flybase.net/releases/FB2020_05/dmel_r6.36/gff/dmel-all-r6.36.gff.gz
 
 Then, we used the combined references for sequence alignment and gene quantification. 
@@ -139,8 +153,8 @@ nohup bash RNAseq_pipeline.sh --pair \
 -d ~/RNApipe \
 -i ~/RNApipe/data \
 -o ~/RNApipe/results \
---ref /Reference/dog_dm/index/star_index/Cfam1.0_Dmel6.36/ \
---gtf /Reference/dog_dm/annotation/Cfam1.0_Dmel6.36.gff3 \
+--ref /Reference/hg_dm/index/star_index/GRCh38_Dm6.36/ \
+--gtf /Reference/hg_dm/annotation/GRCh38_Dm6.36.gff3 \
 -t 32 >nohup1.out 2>&1 &
 ```
 
@@ -202,7 +216,7 @@ Counts files in `results/featurecounts/*_counts.txt` can be used for further ana
 
 # Citations
 
-If you use `RNAseq_pipeline.sh` for your analysis, please cite the publication: [enONE: Epitranscriptional NAD-capped RNA analysis by spike-in-based Omic-level Normalization and Evaluation]()
+If you use `RNAseq_pipeline.sh` for your analysis, please cite the publication: [Epitranscriptome analysis of NAD-capped RNA by spike-in-based normalization and prediction of chronological age]()
 
 
 

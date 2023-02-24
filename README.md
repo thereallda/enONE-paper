@@ -1,6 +1,6 @@
 # enONE-paper
 
-Codes for "**enONE: Epitranscriptional NAD-capped RNA analysis by spike-in-based Omic-level Normalization and Evaluation**" manuscript.
+Codes for "**Epitranscriptome analysis of NAD-capped RNA by spike-in-based normalization and prediction of chronological age**" manuscript.
 
 - "Analysis" folder contains codes for data analysis in our manuscript; 
 - "Data" folder contains associated data for analysis in our manuscript.
