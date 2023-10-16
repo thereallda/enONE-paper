@@ -21,7 +21,31 @@ In "01-RNA-seq_pipeline" folder:
 
 ## 04_NAD-RNA_characterization
 
-`04_NAD-RNA_characterization.R`: for NAD-RNA characterization, including gene type, chromosome distribution, gene length, and intron numbers. 
+`04-1_NAD-RNA_characterization.R`: for NAD-RNA characterization, including gene type, chromosome distribution, gene length, and intron numbers. 
+
+`04-2_NAD-RNA_MFE.R`: for analysis of minimum free energy (MFE) based on 5'-UTR sequence in R
+
+`04-2_RNAFold.sh`: used `RNAfold` to calculate the minimum free energy (MFE) based on 5'-UTR sequence in shell.
+
+`04-2_RNAFold.sh` can be used in the following command 
+
+> Prerequisite: ViennaRNA package (https://www.tbi.univie.ac.at/RNA/ViennaRNA/doc/html/install.html)
+>
+> Before using `04-2_RNAFold.sh`, one should get sequences of interest by genome coordinations (bed format), which can be done with the following commands
+>
+> ```bash
+> bedtools getfasta -name+ -fi GRCh38.primary_assembly.genome.fa -bed NADRNA_5UTR.bed -fo NADRNA_5UTR.fa
+> ```
+>
+> `GRCh38.primary_assembly.genome.fa` should be indexed and the index should be placed in the same directory as the genome fasta file. 
+
+```bash
+bash 04-2_RNAFold.sh -i NADRNA_5UTR.fa -o NADRNA_MFE.csv
+```
+
+`-i`: input sequence extracted based on the 5'UTR coordination, in fasta format
+
+`-o`: MFE of each sequence. `04-2_NAD-RNA_MFE.R` use this file for visualization
 
 
 
@@ -33,10 +57,5 @@ In "01-RNA-seq_pipeline" folder:
 
 ## 06_AgingClock
 
-`06_AgingClock.R`: for building age prediction models. 
+`06_AgingClock.R`: for building age prediction models (elastic net, lasso, ridge regression models) and validation of age prediction model that combined signatures from transcriptome and epitranscriptome. 
 
-
-
-## 07_Validation
-
-`07_Validation.R`: for validation of age prediction model that combined signatures from transcriptome and epitranscriptome. 

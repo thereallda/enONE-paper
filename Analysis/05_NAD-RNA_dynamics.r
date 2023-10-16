@@ -33,12 +33,11 @@ plotTrajectory <- function(data.plot, x, y, group, avg.span=2, title=NULL) {
 
 
 # load data, including Enone, top.norm.data, and res.sig.ls (NAD-RNAs)
-load("DATA/Enone.RData")
+load("Data/Enone.RData")
 
 # In Data folder 
 metadata <- read.csv("Data/metadata.csv")
-# only use discovery cohort
-metadata <- metadata[metadata$cohort.group == "Discovery",]
+metadata$age_group <- gsub("\\..*", "", metadata$condition)
 metadata.uni <- metadata[!duplicated(metadata$sample.id),]
 
 # get annotation
@@ -52,6 +51,7 @@ gene_anno <- getBM(attributes = c("ensembl_gene_id", "external_gene_name","descr
 gene_anno$entrezgene_id[is.na(gene_anno$entrezgene_id)] <- ""
 gene_anno <- gene_anno[!duplicated(gene_anno$ensembl_gene_id),]
 rownames(gene_anno) <- gene_anno$ensembl_gene_id
+gene_anno$description <- gsub(" \\[.*","",gene_anno$description)
 
 # individual enrichment profiles ----
 # log transformation of normalized counts
@@ -65,7 +65,7 @@ nad_id <- unique(Reduce(union, lapply(res.sig.ls, function(x) x$GeneID)))
 
 # keep NAD-RNA
 ## fold change >= 2
-ind.lfc.keep.fc2 <- ind.lfc[nad_id_fc2,]
+ind.lfc.keep.fc2 <- ind.lfc[nad_id,]
 ind.scale.fc2 <- t(scale(t(ind.lfc.keep.fc2))) # scale
 
 # expression profiles ----
@@ -96,20 +96,18 @@ column_ha1 <- HeatmapAnnotation(num = anno_barplot(colSums(ind.lfc.keep.fc2 >= 1
                                                    numbers_offset = unit(-0.8, "cm"),
                                                    numbers_gp = gpar(col="#FFFFFF"),
                                                    height = unit(3, "cm")),
-                                age = metadata.uni$age,
+                                age = metadata.uni$age_group,
                                 gender = metadata.uni$sex,
                                 col = list(age=color_map, gender=pal2))
 
 # cutree with k=3
-h.clust <- cutree(hclust(dist(ind.scale.fc2)), k = 3)
+h.clust <- cutree(hclust(dist(ind.scale.fc2)), k = 2)
 
 pdf(file = "results/Ind_NADRNA_profiles_age.pdf", width=16, height=10)
 Heatmap(ind.scale.fc2,
         name = "Z-score", split=h.clust, clustering_method_columns = "ward.D2",
-        show_column_names = F, show_row_names = F,
-        col = col_fun, cluster_rows = T,
-        column_names_rot = 45, column_names_centered = T,
-        use_raster = F, top_annotation = column_ha1
+        show_column_names = T, show_row_names = F,
+        col = col_fun, use_raster = F, top_annotation = column_ha1
 )
 dev.off()
 
@@ -132,7 +130,7 @@ tp.lsi <- lapply(unique(nad_cluster$cluster), function(i) {
                  group="gene", title=i, avg.span=1)
 })
 tpsi <- wrap_plots(tp.lsi, ncol=1)
-ggsave(paste0("results/Trajectory_NAD_hc3.pdf"), tpsi, width=3, height=9)
+ggsave(paste0("results/Trajectory_NAD_hc2.pdf"), tpsi, width=3, height=9)
 
 # expression levels of genes from different NAD-RNA clusters
 tp.ls.expr <- lapply(unique(nad_cluster$cluster), function(i) {
@@ -140,7 +138,7 @@ tp.ls.expr <- lapply(unique(nad_cluster$cluster), function(i) {
                  x="age", y="value", group="gene", avg.span=3)
 })
 tp.ls.expr <- wrap_plots(tp.ls.expr, nrow=1) + plot_annotation("Transcriptome")
-ggsave(paste0("results/Trajectory_expr_NAD_hc3.pdf"), tp.ls.expr, width=9, height=3)
+ggsave(paste0("results/Trajectory_expr_NAD_hc2.pdf"), tp.ls.expr, width=9, height=3)
 
 # compute correlation between age and nad modifition/gene expression
 sample.age <- metadata.uni$age
@@ -179,39 +177,9 @@ nad.cor <- cor.nad.df %>%
 write.csv(expr.cor, "results/AgeCor_Expr.csv", row.names=F, quote=F)
 write.csv(nad.cor, "results/AgeCor_NAD.csv", row.names=F, quote=F)
 
-# draw distribution of correlation by clusters
-cor.df.combine <- data.frame(cor=c(cor.nad.df$cor.rho, cor.expr.df[nad_id,]$cor.rho),
-                      type=rep(c("nad","expr"), each=length(nad_id)),
-                      cluster=rep(h.clust.df[nad_id,]$cluster, times=2))
-
-# perform KS test
-ks.p <- sapply(1:3, function(i) {
-  ks.test(cor~type, data=subset(cor.df.combine, cluster==i), exact=FALSE)$p.value
-})
-
-# compute the average correlation by cluster on transcriptome and epitranscriptome, respectively
-mean_dat <- cor.df.combine %>% group_by(cluster, type) %>% summarise(m=mean(cor))
-
-# draw distribution charts
-cor.df.combine %>% 
-  ggplot(aes(cor, fill=type)) +
-  geom_density(alpha=0.6, color=NA) +
-  geom_vline(aes(xintercept = m, color=type), data=mean_dat, lty="dashed") +
-  facet_wrap(~cluster) + 
-  theme_classic() +
-  theme(axis.text = element_text(color="black"),
-        strip.background = element_blank(),
-        strip.text = element_text(face="bold")) +
-  scale_fill_manual(values=rev(c("#C35743", "#191919"))) +
-  scale_color_manual(values=rev(c("#C35743", "#191919"))) +
-  scale_y_continuous(expand = expansion(0)) +
-  labs(x="Spearman"s correlation with age", y="Density", color="", fill="")
-ggsave("results/AgeCorDist.pdf", width=8, height=3)
-
 # draw single gene trajectory ----
 # interested genes
-itg1 <- c("ENSG00000167004","ENSG00000151092","ENSG00000164305","ENSG00000064012",
-          "ENSG00000151461","ENSG00000154146","ENSG00000105329")
+itg1 <- c("ENSG00000167004","ENSG00000025156","ENSG00000151461","ENSG00000154146")
 
 # transfer into long format
 # modification levels of interested genes
@@ -251,5 +219,28 @@ df.long.it %>%
   labs(x="Age (years)", y="Z-score", color="")
 ggsave("results/Trajectory_selGene_combine.pdf", width=16, height=3)
 
+# highly age-correlated NAD-RNA ----
+nad_cor <- rownames(subset(cor.nad.df, abs(cor.rho) >= 0.3 & p < 0.05))
+nad_fc_sub <- ind.scale.fc2[nad_cor,]
+rownames(nad_fc_sub) <- subset(nad.cor, abs(cor.rho) >= 0.3 & p < 0.05)$external_gene_name
+showID <- subset(nad.cor, GeneID %in% itg1)$external_gene_name
+
+rownames(nad_fc_sub)[!rownames(nad_fc_sub) %in% showID] <- ""
+
+col_breaks2 <- c(-2,-1.5,0,1,2,3)
+col_fun2 <- circlize::colorRamp2(col_breaks2, my_pal)
+
+pdf("results/AgeNAD_r03_hm.pdf", width=5, height=6)
+Heatmap(nad_fc_sub,
+        name = "Z-score", clustering_method_columns = "ward.D2",
+        show_column_names = F, show_row_names = T,
+        col = col_fun2, use_raster = F,
+        top_annotation = HeatmapAnnotation(
+          age = metadata.uni$age_group,
+          gender = metadata.uni$gender,
+          col = list(age=pal1, gender=pal2))
+)
+dev.off()
+
 # save data
-save(nad_id, ind.lfc.keep.fc2, ind.scale.fc2, expr.norm, expr.scale, file="DATA/NADRNA_profiles.RData")
+save(nad_id, ind.lfc.keep.fc2, ind.scale.fc2, expr.norm, expr.scale, cor.nad.df, cor.expr.df, file="DATA/NADRNA_profiles.RData")

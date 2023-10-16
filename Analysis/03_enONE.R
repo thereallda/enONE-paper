@@ -6,8 +6,6 @@ library(tidyverse)
 metadata <- read.csv("Data/metadata.csv")
 counts_df <- read.csv("Data/Counts.csv", row.names = 1)
 
-# only use discovery cohort
-metadata <- metadata[metadata$cohort.group == "Discovery",]
 counts_df <- counts_df[, metadata$id]
 
 # prefix of Drosophila spike-in gene id
@@ -43,7 +41,7 @@ OutlierTest(Enone, return=FALSE)
 ## run ---- 
 Enone <- enONE(Enone, 
                ruv.norm = TRUE, ruv.k = 5, 
-               eval.pc.n = 5, eval.pam.k = 2:12,
+               eval.pc.n = 6, eval.pam.k = 2:12,
                return.norm = TRUE)
 
 ## check performance
@@ -88,8 +86,9 @@ Enone <- FindEnrichment(Enone, slot = "sample", method = top.norm)
 
 # get filtered enrichment results 
 res.sig.ls <- getEnrichment(Enone, slot="sample", filter=TRUE)
-# further filtered by expression level
-res.sig.ls <- lapply(res.sig.ls, function(x) subset(x, logCPM>=1))
+
+# name of the elements
+names(res.sig.ls) <- c("Young", "Mid", "Old")
 
 # save data
 save(Enone, res.sig.ls, top.norm.data, file="Data/Enone.RData")
