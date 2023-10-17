@@ -59,3 +59,6 @@ bash 04-2_RNAFold.sh -i NADRNA_5UTR.fa -o NADRNA_MFE.csv
 
 `06_AgingClock.R`: for building age prediction models (elastic net, lasso, ridge regression models) and validation of age prediction model that combined signatures from transcriptome and epitranscriptome. 
 
+
+
+`helper.R`: custom functions for analysis.
