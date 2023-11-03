@@ -80,9 +80,9 @@ ggsave("results/PCA_sample_mar_raw.pdf", mp1, width=4,height=4)
 ggsave("results/PCA_sample_mar_norm.pdf", mp2, width=4,height=4)
 
 # Find Enrichment ----
-# NAD-RNAs were defined as fold change of normalized transcript counts ≥ 2, FDR < 0.05, 
-# and log2-CPM > 1 in enrichment samples compared to those in input samples.
-Enone <- FindEnrichment(Enone, slot = "sample", method = top.norm)
+# NAD-RNAs were defined as fold change of normalized transcript counts ≥ 2, and FDR < 0.05
+# in enrichment samples compared to those in input samples.
+Enone <- FindEnrichment(Enone, slot = "sample", norm.method = top.norm)
 
 # get filtered enrichment results 
 res.sig.ls <- getEnrichment(Enone, slot="sample", filter=TRUE)

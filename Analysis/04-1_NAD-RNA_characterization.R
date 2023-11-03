@@ -46,7 +46,7 @@ df1 <- nad_sig %>%
          label=paste0(gene_biotype, " ", pct, "%"))
 
 # barplot for genebiotype with y-axis break
-bp1 <- ggplot(df1, aes(gene_biotype, pct, fill=Group)) +
+bp1 <- ggplot(df1, aes(gene_biotype, pct)) +
   geom_bar(stat="identity", position="dodge", width = 0.8) +
   geom_text(aes(label=pct), data=subset(df1, pct<3),
             position=position_dodge(width = 0.9), vjust=-1) +
