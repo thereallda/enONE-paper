@@ -42,20 +42,17 @@ nad_sig$gene_biotype <- factor(nad_sig$gene_biotype,levels=unique(nad_sig$gene_b
 df1 <- nad_sig %>% 
   dplyr::count(gene_biotype, .drop=FALSE) %>% 
   mutate(pct=round(n/sum(n)*100,2),
-         gene_biotype=forcats::fct_reorder(gene_biotype, pct, .desc = TRUE),
-         label=paste0(gene_biotype, " ", pct, "%"))
+         gene_biotype=forcats::fct_reorder(gene_biotype, pct, .desc = TRUE))
 
 # barplot for genebiotype with y-axis break
 bp1 <- ggplot(df1, aes(gene_biotype, pct)) +
-  geom_bar(stat="identity", position="dodge", width = 0.8) +
-  geom_text(aes(label=pct), data=subset(df1, pct<3),
-            position=position_dodge(width = 0.9), vjust=-1) +
+  geom_bar(stat="identity", width = 0.8) +
+  geom_text(aes(label=pct), data=subset(df1, pct<3), vjust=-1) +
   theme_classic() +
   theme(axis.text.x = element_text(color="black"),
         axis.text.y = element_text(color="black")) +
   scale_fill_manual(values = rev(paint_palette("Splash",3,"continuous"))) +
   scale_x_discrete(labels = gsub("_"," ",levels(df1$gene_biotype))) +
-  scale_y_continuous(expand = expansion(0)) +
   labs(x="", y="Percentage (%)", fill="") +
   ggbreak::scale_y_break(c(20,59), scales = 0.3)
 ggsave("results/GeneType_bar.pdf", bp1, width=8, height=6, onefile=FALSE)
@@ -85,8 +82,7 @@ cbp2 <- ggplot(df2, aes(seqnames, pct)) +
   ) +
   # Annotate custom scale inside plot
   annotate(x = 22, y = 10, label = "10%", geom = "text", fontface="bold") +
-  annotate(x = 22, y = 5, label = "5%", geom = "text", fontface="bold") +
-  labs(fill="")
+  annotate(x = 22, y = 5, label = "5%", geom = "text", fontface="bold") 
 ggsave("results/ChrDistr_circ.pdf", cbp2, width=8, height=6)
 
 # gene length ~ logFC ----

@@ -30,7 +30,58 @@ plotTrajectory <- function(data.plot, x, y, group, avg.span=2, title=NULL) {
   
   gg1 
 }
+# entropy ----
+# calculate entropy using empirical method in log2 unit
+H <- function(pVec) {
+    pVec <- pVec/sum(pVec) # in case input vector is not probability
+    pVec <- ifelse(pVec > 0, pVec, 0)
+    -sum(pVec * log2(pVec), na.rm = TRUE)
+}
 
+# simple linear model between entropy and age with pearson correlation
+plotEntropy <- function(data, x, y) {
+    lab_dat <- data %>%
+    group_by(type) %>%
+    summarise(cor = cor.test(!!sym(y), !!sym(x))$estimate,
+    cor_p = cor.test(!!sym(y), !!sym(x))$p.value) %>%
+    mutate(lab = paste0("R = ", round(cor,3), "; P = ", round(cor_p,3)))
+    sample_label <- c(
+    `expr` = paste0("Transcriptome\n", lab_dat[1,"lab"]),
+    `nad` = paste0("Epitranscriptome\n",lab_dat[2,"lab"])
+    )
+    p1 <- ggplot(data, aes_string(x, y)) +
+            geom_point() +
+            geom_smooth(method="lm", color = "#00B3B3", fill = "#9bc5d4") +
+            facet_wrap(~type, scales = "free_y", labeller = as_labeller(sample_label)) +
+            theme_classic() +
+            theme(strip.background = element_blank(),
+                  strip.text = element_text(face="bold"),
+                  axis.text = element_text(color="black"))
+    return(p1)
+}
+# Jensen-Shannon divergence ----
+calcJSD <- function(data) {
+    # Compute centroid of samples
+    centroid <- rowMeans(data)
+    # Compute pairwise Jensen-Shannon distances
+    n <- ncol(data)
+    dist_vec <- vector("double", length = n)
+    for (i in 1:n) {
+        x <- as.vector(data[, i]/sum(data[, i]))
+        y <- as.vector(centroid/sum(centroid))
+        m <- (x + y) / 2
+        # entropy
+        h_x <- H(x)
+        h_y <- H(y)
+        h_m <- H(m)
+        jsd_xy <- h_m - (h_x + h_y) / 2
+        dist_vec[i] <- jsd_xy
+    }
+    names(dist_vec) <- colnames(data)
+    # return square root of Jensen-Shannon divergence as Jensen-Shannon distance
+    return(sqrt(dist_vec))
+}
+##----##
 
 # load data, including Enone, top.norm.data, and res.sig.ls (NAD-RNAs)
 load("Data/Enone.RData")
@@ -100,7 +151,7 @@ column_ha1 <- HeatmapAnnotation(num = anno_barplot(colSums(ind.lfc.keep.fc2 >= 1
                                 gender = metadata.uni$sex,
                                 col = list(age=color_map, gender=pal2))
 
-# cutree with k=3
+# cutree with k=2
 h.clust <- cutree(hclust(dist(ind.scale.fc2)), k = 2)
 
 pdf(file = "results/Ind_NADRNA_profiles_age.pdf", width=16, height=10)
@@ -241,6 +292,16 @@ Heatmap(nad_fc_sub,
           col = list(age=pal1, gender=pal2))
 )
 dev.off()
+
+# Jensen-Shannon Distance
+jsd_expr <- calcJSD(2^expr.norm)
+jsd_nad <- calcJSD(2^ind.lfc.keep.fc2)
+jsd_df <- cbind(ent_df, "jsd"=c(jsd_nad, jsd_expr))
+
+p1 <- plotEntropy(jsd_df, x="age", y="jsd") + labs(title="JSD ~ Age",x="Age (years)",y="JSD")
+p2 <- plotEntropy(jsd_df, x="bmi", y="jsd") + labs(title="JSD ~ BMI",x="BMI",y="JSD")
+p1+p2
+ggsave("results/JSD.pdf", width = 9, height = 3.5)
 
 # save data
 save(nad_id, ind.lfc.keep.fc2, ind.scale.fc2, expr.norm, expr.scale, cor.nad.df, cor.expr.df, file="DATA/NADRNA_profiles.RData")
